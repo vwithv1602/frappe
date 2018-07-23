@@ -105,6 +105,17 @@ frappe.ui.form.Timeline = Class.extend({
 
 		this.editing_area.destroy();
 	},
+	get_whatsapp_messages: function(customer){
+		return frappe.call({
+			method: "erpnext_mobile_addons.erpnext_mobile_addons.doctype.whatsapp_center.whatsapp_center.get_whatsapp_messages",
+			args: {
+				customer: customer
+			},
+			async:false,
+			callback: function(r) {
+			}
+		});
+	},
 
 	refresh: function(scroll_to_end) {
 		var me = this;
@@ -120,6 +131,22 @@ frappe.ui.form.Timeline = Class.extend({
 		this.comment_area.val('');
 
 		var communications = this.get_communications(true);
+		/* 
+		>> WhatsApp functionality
+		- get all communications from `tabWhatsApp Log` 
+		*/
+		if(this.frm.doctype == 'Sales Order' || this.frm.doctype == 'Sales Invoice' || this.frm.doctype == 'Delivery Note'){
+			// get customer from doctype
+			var customer = this.frm.doc.customer;
+			whatsapp_messages = this.get_whatsapp_messages(customer).responseJSON
+			whatsapp_messages.message.forEach(function(w){
+				communications.push({"comment_type":"WhatsApp","creation":w.creation,"owner":w.owner,"version_name":"WHATSAPP","sender":w.sender_name,"comment_by":w.owner,"content":"sent WhatsApp message - <a target='_blank' href='#Form/WhatsApp Log/"+w.name+"'><b>"+w.message+"</b></a>"})
+			});
+		}
+		/* 
+		<< WhatsApp functionality
+		- get all communications from `tabWhatsApp Log` 
+		*/
 
 		communications
 			.sort((a, b) => a.creation > b.creation ? -1 : 1)
@@ -374,7 +401,8 @@ frappe.ui.form.Timeline = Class.extend({
 				"Like": "octicon octicon-heart",
 				"Edit": "octicon octicon-pencil",
 				"Relinked": "octicon octicon-check",
-				"Reply": "octicon octicon-mail-reply"
+				"Reply": "octicon octicon-mail-reply",
+				"WhatsApp":"octicon octicon-megaphone"
 			}[c.comment_type || c.communication_medium]
 
 			c.color = {
