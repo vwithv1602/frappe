@@ -139,9 +139,11 @@ frappe.ui.form.Timeline = Class.extend({
 			// get customer from doctype
 			var customer = this.frm.doc.customer;
 			whatsapp_messages = this.get_whatsapp_messages(customer).responseJSON
+			if(whatsapp_messages.message instanceof Array){
 			whatsapp_messages.message.forEach(function(w){
 				communications.push({"comment_type":"WhatsApp","creation":w.creation,"owner":w.owner,"version_name":"WHATSAPP","sender":w.sender_name,"comment_by":w.owner,"content":"sent WhatsApp message - <a target='_blank' href='#Form/WhatsApp Log/"+w.name+"'><b>"+w.message+"</b></a>"})
 			});
+			}
 		}
 		/* 
 		<< WhatsApp functionality
